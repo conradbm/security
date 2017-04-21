@@ -1,0 +1,98 @@
+---
+title: "Blake Conrad -- CSCI 43200 Security -- Network Analysis -- Final Project"
+output: html_notebook
+---
+<br><br>
+<h2>Import the data</h2>
+```{r}
+library(ggplot2)
+setwd("/Users/bmc/Desktop/CSCI-43200/finalProject/")
+table <- read.csv("2013-10-01_capture-win12.conn_summary.csv", header=TRUE)
+names(table)[8] <- "X.Security"
+names(table)
+```
+
+<h2> One day's analysis as an example plot</h2>
+```{r}
+plt1 <- ggplot() + geom_line(data=table[1:6,c("Starttime","X.Packets","X.Security")], aes(x=Starttime, y=X.Packets,color=X.Security)) 
+plt1 <- plt1 + ggtitle("Network Analysis", subtitle="Example of 1 day's security")
+plt1 <- plt1 + xlab("Number of Hours (Cumulative by 5)") + ylab("Number of Packets")
+plt1 <- plt1 + scale_colour_gradient(limits=c(1, 10), low="red", high="green")
+plt1
+```
+
+<h2>Actually Network Security for the entire data set</h2>
+<ul><li>Fluctuations and dead spots are getting the worst rankings for security</li></ul>
+```{r}
+plt2 <- ggplot() + geom_line(data=table[,c("Starttime","X.Packets","X.Security")], aes(x=Starttime, y=X.Packets,color=X.Security)) 
+plt2 <- plt2 + ggtitle("Network Analysis", subtitle="Actual Network Security Results")
+plt2 <- plt2 + xlab("Number of Hours (Cumulative by 5)") + ylab("Number of Packets")
+plt2 <- plt2 + scale_colour_gradient(limits=c(0, 10), low="red", high="green")
+plt2
+```
+
+<h2>Apply K-means on the data</h2>
+<ul><li>At K=2</li></ul>
+```{r}
+set.seed(12345)
+cluster <- kmeans(table[,2:ncol(table)], centers=2, nstart=30)
+table$cluster <- cluster$cluster
+head()
+```
+
+<h2>K-means Results</h2>
+<ul>
+<li>At K=2</li>
+<li>The initial security vulnerabilies weren't captured</li>
+<li>The dead spots and latter more severse secure vulnerabilities were captured</li>
+</ul>
+```{r}
+plt3 <- ggplot() + geom_line(data=table[,c("Starttime","X.Packets","cluster")], aes(x=Starttime, y=X.Packets,color=cluster)) 
+plt3 <- plt3 + ggtitle("Network Cluster Analysis", subtitle="K-means Security Results | K=2")
+plt3 <- plt3 + xlab("Number of Hours (Cumulative by 5)") + ylab("Number of Packets")
+plt3 <- plt3 + scale_colour_gradient(limits=c(1, 2), low="red", high="green")
+plt3
+```
+
+<h2>Apply K-means on the data</h2>
+<ul><li>At K=2</li></ul>
+```{r}
+set.seed(54321)
+cluster <- kmeans(table[,2:ncol(table)], centers=10, nstart=30)
+table$cluster <- cluster$cluster
+```
+
+<h2>K-means Results</h2>
+<ul>
+<li>At K=10</li>
+<li>The initial security vulnerabilites were captured</li>
+<li>The dead spot vulnerabilities were undermined as not as bad as they should be considered</li>
+<li>The latter security vulnerabilities were for the most part also captured consistently</li>
+</ul>
+```{r}
+plt4 <- ggplot() + geom_line(data=table[,c("Starttime","X.Packets","cluster")], aes(x=Starttime, y=X.Packets,color=cluster)) 
+plt4 <- plt4 + ggtitle("Network Cluster Analysis", subtitle="K-means Security Results | K=10")
+plt4 <- plt4 + xlab("Number of Hours (Cumulative by 5)") + ylab("Number of Packets")
+plt4 <- plt4 + scale_colour_gradient(limits=c(1, 10), low="red", high="green")
+plt4
+```
+
+<h2>How wrong was the K-means algorithm at predicting network security?</h2>
+
+<ul>
+<li>At K=2 --> 3.171672</li>
+<li>At K=10 --> 4.392572</li>
+</ul>
+```{r}
+
+MSE <- sum( (table$X.Security - table$cluster)^2 )/length(table$X.Security)
+RMSE <- sqrt(MSE)
+RMSE
+```
+
+<h2>Concluding Analysis</h2>
+<ul>
+<li>The rankings in the data gave 10 different heats for network security</li>
+<li>The clustering algorithm did better predicting <em>Secure</em> and <em>Not Secure</em> rather than the 10 different levels of security</li>
+</ul>
+<br><br><br><br>
